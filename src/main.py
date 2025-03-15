@@ -12,7 +12,6 @@ parser.add_argument("table_name", nargs="?", default="both_fts", help="Table nam
 args = parser.parse_args()
 
 pleias_bot = inference.pleiasBot(args.table_name)
-print("bot_created")
 
 main_colour = "#AB1717"
 pale_colour = "#FEECEC"
@@ -79,14 +78,14 @@ class ChatWindows:
                 print("----------------search results")
                 print(search_results.to_dict())
                 with ui.label(): # main message
-                    self.display_format_references(answer_text, search_results)
+                    seen_hashes = self.display_format_references(answer_text, search_results)
                 
                 
 
         analysis_container.clear()
         with analysis_container:
             ui.markdown('**Sources**')
-            ui.html(fiches_html)
+            self.display_sources(seen_hashes)
             ui.separator()
             ui.html(f"""
                 <details>
@@ -105,7 +104,6 @@ class ChatWindows:
         if message_input:
             generated_text, fiches_html, search_results  = await asyncio.to_thread(pleias_bot.predict, message_input)
             analysis_text, answer_text = self.prepare_for_format(generated_text)
-            search_results = pd.DataFrame(search_results["data"], columns=search_results["headers"])
             return analysis_text, answer_text, fiches_html, search_results
         else:
             return ""
@@ -119,6 +117,7 @@ class ChatWindows:
             else:
                 analysis_text = ""
                 answer_text = generated_text
+            print("-"*50 + "raw_text")
             print(generated_text)
             print("-"*50 + "analysis_text")
             print(analysis_text)
@@ -132,23 +131,45 @@ class ChatWindows:
         ref_pattern = r'<ref name="([^"]+)">"([^"]+)"</ref>\.\s*'
         current_pos = 0
         
-        for ref_number, match in enumerate(re.finditer(ref_pattern, text), start=1):
-            
+        seen_hashes = {}
+        hash_count = 0
+        
+        for match in re.finditer(ref_pattern, text):
+            print(match)
             # Add text before the reference
             text_before = text[current_pos:match.start()].rstrip()                        
             # Extract reference components
-            ref_id = match.group(1)
-            ref_text = match.group(2).strip()
-            ref_text_from_db = search_results.loc[search_results["hash"] == ref_id, "text"].values[0]
-            ref_url = search_results.loc[search_results["hash"] == ref_id, "url"].values[0] #"https://www.google.com"
+            current_hash = match.group(1)
+            
+            # Check that the hash is in the search results, otherwise it was hallucinated
+            table_extract = search_results.loc[search_results["hash"] == current_hash]
+            if len(table_extract) == 0:
+                continue
+            else:
+                ref_url = table_extract["url"].values[0]
+                ref_text_from_db = table_extract["text"].values[0]
+            
+            # Check if the hash has already been quoted
+            if current_hash not in seen_hashes.keys():
+                hash_count += 1
+                hash_number = hash_count
+                seen_hashes[current_hash] = {}
+                seen_hashes[current_hash]["hash_number"] = hash_number
+                seen_hashes[current_hash]["url"] = ref_url
+                seen_hashes[current_hash]["text"] = ref_text_from_db
+                
+            else:
+                hash_number = seen_hashes[current_hash]["hash_number"]
+            
+            quoted_text = match.group(2).strip()
             
             # clickable link with a tooltip on top
-            ui.html( #  \n ({ref_text_from_db})
+            ui.html( 
                 f"""
                 {text_before}
-                <span class="tooltip fade" data-title="{ref_text}"> 
+                <span class="tooltip fade" data-title="{quoted_text}"> 
                     <a href={ref_url} target="_blank">
-                        [{ref_number}]
+                        [{hash_number}]
                     </a>
                 </span>.<br>
                 """
@@ -157,6 +178,19 @@ class ChatWindows:
             
             current_pos = match.end()
         ui.label(text[current_pos:])
+        
+        return seen_hashes
+    
+    def display_sources(self, seen_hashes):
+        for hash in seen_hashes:
+            ui.html( 
+                f"""
+                <a href={seen_hashes[hash]["url"]} target="_blank">
+                    [{seen_hashes[hash]["hash_number"]}]
+                </a>
+                {seen_hashes[hash]["text"]}.<br>
+                """
+                )
 
 
 ############################
