@@ -4,7 +4,6 @@ import asyncio
 import src.inference as inference
 import time 
 import re
-import pandas as pd
 import argparse
 
 parser = argparse.ArgumentParser()

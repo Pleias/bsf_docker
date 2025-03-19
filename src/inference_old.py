@@ -16,8 +16,8 @@ device = "cpu"
 model_name = "PleIAs/pleias_350m_rag"
 
 # Initialize model and tokenizer
-tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=r"C:\Users\User\Documents\Models")
-model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir=r"C:\Users\User\Documents\Models")
+tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir="models")
+model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir="models")
 model.to(device)
 
 # Set tokenizer configuration
