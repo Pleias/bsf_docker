@@ -5,12 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "lancedb>=0.20.0",
-    "llama-cpp-python>=0.3.8",
-    "nicegui>=2.11.1",
+    "lancedb>=0.21.2",
+    "nicegui>=2.13.0",
     "numpy>=2.2.3",
     "pandas>=2.2.3",
-    "sentence-transformers>=3.4.1",
+    "pylance>=0.25.2",
     "tantivy>=0.22.0",
 ]
 

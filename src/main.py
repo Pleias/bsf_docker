@@ -141,12 +141,16 @@ class ChatWindows:
             current_hash = match.group(1)
             
             # Check that the hash is in the search results, otherwise it was hallucinated
-            table_extract = search_results.loc[search_results["hash"] == current_hash]
-            if len(table_extract) == 0:
-                continue
-            else:
-                ref_url = table_extract["url"].values[0]
-                ref_text_from_db = table_extract["text"].values[0]
+            try:
+                table_extract = search_results.loc[search_results["hash"] == current_hash]
+                if len(table_extract) == 0:
+                    continue
+                else:
+                    ref_url = table_extract["url"].values[0]
+                    ref_text_from_db = table_extract["text"].values[0]
+            except KeyError:
+                print(f"Hash {current_hash} not found in search results.")
+                
             
             # Check if the hash has already been quoted
             if current_hash not in seen_hashes.keys():
@@ -297,4 +301,4 @@ analysis_drawer.bind_visibility_from(chat_display)
 query_bar.bind_visibility_from(chat_display)
 
 
-ui.run(port=8081)
+ui.run(host="0.0.0.0", port=8081)
