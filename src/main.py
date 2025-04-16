@@ -5,6 +5,11 @@ import src.inference as inference
 import time 
 import re
 import argparse
+import logging
+
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("table_name", nargs="?", default="both_fts", help="Table name (default: both_fts)")
@@ -56,7 +61,7 @@ class ChatWindows:
             ).props('bg-color=grey-2 text-black')
             
         # Get bot response
-        print("getting response")
+        logger.info("Getting response")
         analysis_text, answer_text, fiches_html, search_results = await self.get_response(message_input)  
         
         # Auto-scroll to latest message
@@ -74,8 +79,8 @@ class ChatWindows:
             ).props('bg-color=grey-2 text-black') as bot_message:
                 
                 ui.label(f"Thought for {elapsed_time} seconds")
-                print("----------------search results")
-                print(search_results.to_dict())
+                logger.info("Search results:")
+                logger.info(search_results.to_dict())
                 with ui.label(): # main message
                     seen_hashes = self.display_format_references(answer_text, search_results)
                 
@@ -116,12 +121,10 @@ class ChatWindows:
             else:
                 analysis_text = ""
                 answer_text = generated_text
-            print("-"*50 + "raw_text")
-            print(generated_text)
-            print("-"*50 + "analysis_text")
-            print(analysis_text)
-            print("-"*50 + "answer_text")
-            print(answer_text)
+            logger.info("Analysis_text:")
+            logger.info(analysis_text)
+            logger.info("Answer_text:")
+            logger.info(answer_text)
             
             return analysis_text, answer_text
     
@@ -134,7 +137,6 @@ class ChatWindows:
         hash_count = 0
         
         for match in re.finditer(ref_pattern, text):
-            print(match)
             # Add text before the reference
             text_before = text[current_pos:match.start()].rstrip()                        
             # Extract reference components
@@ -149,7 +151,7 @@ class ChatWindows:
                     ref_url = table_extract["url"].values[0]
                     ref_text_from_db = table_extract["text"].values[0]
             except KeyError:
-                print(f"Hash {current_hash} not found in search results.")
+                logger.error(f"Hash {current_hash} not found in search results.")
                 
             
             # Check if the hash has already been quoted

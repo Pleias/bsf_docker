@@ -68,7 +68,7 @@ class pleiasBot:
             n_gpu_layers=0,        # cpu only 
         )
 
-    def predict(self, user_message):
+    def predict_stream(self, user_message):
         document, fiches_html, search_results = search(user_message, table=self.table)
         
         detailed_prompt = f"""<|query_start|>{user_message}<|query_end|>\n{document}\n<|source_analysis_start|>"""
@@ -86,15 +86,16 @@ class pleiasBot:
                 reset=True,
             )
             generated_text = ""
-
+                                
             for i, t in enumerate(tokens):
-                piece = self.model.detokenize([t], special=True).decode("utf-8", errors="replace")    
+                piece = self.model.detokenize([t], special=True).decode("utf-8", errors="replace")
                 if (piece == "<|answer_end|>") | (i >= self.max_new_tokens):
                     break
                 generated_text += piece
-            logger.info(f"Generation time: {time.time() - start:.2f} seconds")
+                yield piece  # Stream the generated text
+                
+            # logger.info(f"Generation time: {time.time() - start:.2f} seconds")
  
-            return generated_text, fiches_html, search_results
 
         except Exception as e:
             logger.info(f"Error during generation: {str(e)}")
