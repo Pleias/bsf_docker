@@ -1,8 +1,0 @@
----
-
-include:
-  - file:
-    project: 'bibliosansfrontieres/olip-ng/cicd'
-    file:
-      - '/apps.recipe.yml'
-    ref: v1.0.0

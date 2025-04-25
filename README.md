@@ -17,7 +17,7 @@ https://huggingface.co/PleIAs/pleias_350_feb_gguf/tree/main
 python -m src.main
 ```
 
-You can add an argument to choose if you want to use only the French, English or both version (default is "both_fts"):
+You can add an argument to choose if you want to use only the French, English or both version (default is "both_fts"). You can also set up debug mode (see --help for more)
 ``` python
-python -m src.main en_fts
+python -m src.main --table-name fr_fts --debug
 ```
