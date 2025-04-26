@@ -138,6 +138,42 @@ class GenerationEngine:
         logger.info(f"Generation time: {t2 - t1:.2f} seconds")
         
         return generated_text.strip()
+    
+    def _generate_llama_cpp_stream(self, formatted_prompt: str) -> str:
+        """
+        Generates a stream of text using the LLaMA model with the given formatted prompt.
+        This function tokenizes the input prompt, generates tokens using the model, and detokenizes
+        them to produce a stream of text. It logs the prefill time (time taken to generate the first token)
+        and stops generating when the end-of-text token is encountered or the maximum token limit is reached.
+        Args:
+            formatted_prompt (str): The input prompt formatted as a string.
+        Yields:
+            str: A piece of the generated text.
+        """
+
+        t0 = time.time()
+        tokens = self.model.generate(
+                self.model.tokenize(formatted_prompt.encode("utf-8"), special=True), 
+                temp=self.temperature,
+                top_p=self.top_p,
+                repeat_penalty=self.repetition_penalty,
+                reset=True,
+            )
+        t1 = None
+        self._last_raw = ""
+
+        for i, t in enumerate(tokens):
+            
+            # Compute prefill time
+            if t1 is None:
+                t1 = time.time()
+                logger.info(f"Prefill time: {t1 - t0:.2f} seconds")
+                
+            piece = self.model.detokenize([t], special=True).decode("utf-8", errors="replace") 
+            self._last_raw += piece   
+            if (piece == "<|end_of_text|>") | (i >= self.max_tokens):
+                break
+            yield piece
 
     #############################
     # Response Processing       #
@@ -304,7 +340,6 @@ class GenerationEngine:
             "backend_used": self.backend
         }
         return response
-
     
 if __name__ == "__main__":
         # Simple manual test

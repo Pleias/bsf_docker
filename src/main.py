@@ -72,9 +72,6 @@ class ChatWindows:
         logger.info("Getting response")
         analysis_text, answer_text, sources = await self.get_response(message_input)  
         
-        # Auto-scroll to latest message
-        ui.run_javascript('window.scrollTo(0, document.body.scrollHeight)')
-        
         elapsed_time = int(time.time() - start)
         bot_message.clear()
         with self.chat_display:

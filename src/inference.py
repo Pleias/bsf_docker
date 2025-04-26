@@ -72,7 +72,29 @@ class PleiasBot:
             import traceback
             traceback.logger.info_exc()
             return None
-
+        
+    def stream_predict(self, user_message: str):
+        """
+        Yields raw text pieces from the model, _including_ all reasoning
+        up through the <|answer_end|> tag.
+        """
+        # 1) run your search so we have sources in-hand
+        sources = self.search(user_message, table=self.table, limit=self.search_limit)
+        prompt = self.generation_engine.format_prompt(user_message, sources)
+        
+        # 2) generate token‐by‐token
+        for piece in self.generation_engine._generate_llama_cpp_stream(prompt):
+            print(piece, end="", flush=True)  # Print the raw text piece
+            yield piece
+            
+        # 3) after the stream finishes, return the final processed sections
+        raw = self.generation_engine._last_raw  
+        sections = self.generation_engine.extract_sections(raw)
+        if "answer" in sections:
+            info = self.generation_engine.extract_citations(sections["answer"], sources)
+            sections["clean_answer"] = info["clean_text"]
+            sections["citations"]   = info["citations"]
+        yield {"__done__": sections, "sources": sources}
 
 # Launch the app
 if __name__ == "__main__":
