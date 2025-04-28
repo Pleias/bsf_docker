@@ -13,4 +13,4 @@ RUN uv --version
 
 RUN CMAKE_ARGS="-DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" uv pip install llama_cpp_python
 
-CMD ["uv", "run", "python", "-m", "src.main"]
+CMD ["uv", "run", "python", "-m", "src.main", "--stream"]

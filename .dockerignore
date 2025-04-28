@@ -2,4 +2,5 @@
 _pycache
 .old
 .git
-*stream*
+models\Pleias-RAG-1B.gguf
+*.log
