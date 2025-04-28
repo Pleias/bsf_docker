@@ -567,7 +567,7 @@ def main():
         "-t",
         "--table-name",
         dest="table_name",
-        default="both_fts",
+        default="both",
         help="Table name (default: %(default)s)",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")

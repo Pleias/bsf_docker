@@ -1,16 +1,18 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
- RUN apt update && apt install -y libopenblas-dev ninja-build build-essential git pkg-config \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/* /tmp/*
+ENV DEBIAN_FRONTEND=noninteractive
+# ↓ tell CMake to use the compilers that are already installed
+ENV CC=gcc CXX=g++
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential ninja-build pkg-config libopenblas-dev git && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . /app
 RUN uv sync --frozen
-RUN pip list
-RUN which python
-RUN uv --version
-
-RUN CMAKE_ARGS="-DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" uv pip install llama_cpp_python
+RUN CMAKE_ARGS="-DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" \
+    uv pip install llama_cpp_python==0.3.8
 
 CMD ["uv", "run", "python", "-m", "src.main", "--stream"]

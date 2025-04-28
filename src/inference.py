@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class PleiasBot:
     def __init__(
         self,
-        table_name: Literal["fr_fts", "en_fts", "both_fts"] = "both_fts",
+        table_name: Literal["fr", "en", "both"] = "both",
         model_path: str = "models/Pleias-RAG-350m.gguf",
         temperature: float = 0.0,
         max_new_tokens: int = 2048,
@@ -24,9 +24,10 @@ class PleiasBot:
         """
         Orchestrates the generation and the data retrieval with the specified parameters.
         Args:
-            table_name (Literal["fr_fts", "en_fts", "both_fts"], optional):
+            table_name (Literal["fr", "en", "both"], optional):
                 The name of the table to connect to in the LanceDB database.
-                Defaults to "both_fts".
+                "fr" for French, "en" for English, or "both" for both languages.
+                Defaults to "both".
             model_path (str, optional):
                 The file path to the model to be used for generation.
                 Defaults to "models/Pleias-RAG-350m.gguf".
